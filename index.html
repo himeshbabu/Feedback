@@ -68,11 +68,7 @@
             transform: scale(1.05);
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.2);
         }
-        .qr-code-info {
-             background: rgba(255, 255, 255, 0.7);
-             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
+       
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
@@ -176,7 +172,6 @@
         const formContainer = document.getElementById('form-container');
         const progressContainer = document.getElementById('progress-container');
         const progressBar = document.getElementById('progress-bar');
-        const qrCodeInfo = document.getElementById('qr-code-info');
         const formHeader = document.getElementById('form-header');
 
         let currentQuestionIndex = -1;
@@ -189,7 +184,6 @@
         function startForm() {
             currentQuestionIndex = 0;
             progressContainer.classList.remove('hidden');
-            qrCodeInfo.classList.remove('hidden');
             formHeader.style.opacity = '1';
             showQuestion(currentQuestionIndex);
         }
@@ -358,4 +352,5 @@
     </script>
 </body>
 </html>
+
 
