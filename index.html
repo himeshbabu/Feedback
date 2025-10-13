@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mall Visit Feedback</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://css.gg/css?=|check" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: background 0.7s ease-in-out;
+        }
+        .form-wrapper {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .form-container {
+            min-height: 450px; /* Ensures a consistent height during transitions */
+        }
+        .question-card {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            will-change: opacity, transform;
+        }
+        .question-hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            position: absolute;
+            pointer-events: none;
+        }
+        .option-button {
+            transition: all 0.2s ease-in-out;
+            background-color: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: #1f2937; /* gray-800 */
+        }
+        .option-button:hover {
+            transform: translateY(-3px);
+            background-color: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+        .option-button.selected {
+            background-color: white; 
+            color: #4338ca; /* indigo-700 */
+            border-color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-weight: 600;
+        }
+        .option-button.selected::after {
+            content: '✔';
+            margin-left: 8px;
+            color: #4ade80; /* green-400 */
+        }
+        .progress-bar-inner {
+            transition: width 0.5s ease-in-out;
+        }
+         #start-button {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        #start-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.2);
+        }
+        .qr-code-info {
+             background: rgba(255, 255, 255, 0.7);
+             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl mx-auto">
+        <div class="form-wrapper rounded-2xl shadow-2xl overflow-hidden">
+            <div class="px-4 py-5 sm:p-8">
+                <!-- Header -->
+                <div id="form-header" class="text-center mb-6 opacity-0" style="transition: opacity 0.5s ease;">
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Share Your Experience</h1>
+                    <p class="text-gray-700 mt-1">Help us make your next visit even better!</p>
+                </div>
+
+                <!-- Progress Bar -->
+                <div id="progress-container" class="w-full bg-white/30 rounded-full h-2.5 mb-8 hidden">
+                    <div id="progress-bar" class="bg-white h-2.5 rounded-full progress-bar-inner" style="width: 0%"></div>
+                </div>
+
+                <!-- Form Container -->
+                <div id="form-container" class="relative form-container flex items-center justify-center">
+                    <!-- Questions will be injected here by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- QR Code Information -->
+        <!-- <div id="qr-code-info" class="text-center mt-8 p-6 qr-code-info rounded-2xl shadow-lg hidden">
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Scan to Give Feedback</h3>
+            <p class="text-gray-600 mb-4">Host this file to get a public URL for your QR code.</p>
+            <div class="flex justify-center">
+                 <div class="p-2 bg-white rounded-lg shadow-md">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=YOUR_FORM_URL_HERE" alt="QR Code Placeholder">
+                 </div>
+            </div>
+        </div> -->
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const GOOGLE_FORM_ACTION_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSdG0la51OEkCea3KZDaZXpNv4YwOTVpAJSrdv3Exv1g7U95_g/formResponse';
+
+        const questions = [
+            {
+                id: 'entry.2102434716',
+                text: 'How would you rate your overall visit today?',
+                type: 'emoji',
+                options: ['😞', '😐', '😊', '😃', '🤩'],
+                answers: ['Terrible', 'Okay', 'Good', 'Great', 'Amazing']
+            },
+            {
+                id: 'entry.45796410',
+                text: 'How would you rate the cleanliness of the mall?',
+                type: 'rating',
+                options: [1, 2, 3, 4, 5]
+            },
+            {
+                id: 'entry.972876774',
+                text: 'Were our staff members friendly and helpful?',
+                type: 'choice',
+                options: ['Yes', 'No', 'Did not interact']
+            },
+            {
+                id: 'entry.1593238208',
+                text: 'How was your dining experience?',
+                type: 'choice',
+                options: ['Excellent', 'Good', 'Average', 'Poor', 'Did not dine']
+            },
+            {
+                id: 'entry.1654543873',
+                text: 'Did you find the parking convenient?',
+                type: 'choice',
+                options: ['Yes, very', 'It was okay', 'No, it was difficult', 'Did not use parking']
+            },
+            {
+                id: 'entry.1386294852',
+                text: 'How likely are you to recommend our mall to others?',
+                type: 'rating',
+                options: Array.from({ length: 11 }, (_, i) => i) // Creates numbers 0-10
+            },
+            {
+                id: 'entry.928620423',
+                text: 'Any other comments or suggestions?',
+                type: 'textarea',
+                options: []
+            }
+        ];
+        
+        // --- --- COLOR THEMES --- --- //
+        const backgroundThemes = [
+            'linear-gradient(to right top, #6d28d9, #8b5cf6, #a78bfa, #c4b5fd, #ddd6fe)', // Intro
+            'linear-gradient(to right top, #d946ef, #c026d3, #a21caf, #86198f, #701a75)', // Q1
+            'linear-gradient(to right top, #db2777, #ec4899, #f472b6, #f9a8d4, #fbcfe8)', // Q2
+            'linear-gradient(to right top, #f97316, #fb923c, #fdba74, #fecaca, #fee2e2)', // Q3
+            'linear-gradient(to right top, #eab308, #facc15, #fde047, #fef08a, #fef9c3)', // Q4
+            'linear-gradient(to right top, #16a34a, #22c55e, #4ade80, #86efac, #bbf7d0)', // Q5
+            'linear-gradient(to right top, #0ea5e9, #38bdf8, #7dd3fc, #bae6fd, #e0f2fe)', // Q6
+            'linear-gradient(to right top, #2563eb, #3b82f6, #60a5fa, #93c5fd, #bfdbfe)', // Q7
+            'linear-gradient(to right top, #14b8a6, #2dd4bf, #5eead4, #99f6e4, #ccfbf1)'  // Thank You
+        ];
+
+        const formContainer = document.getElementById('form-container');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const qrCodeInfo = document.getElementById('qr-code-info');
+        const formHeader = document.getElementById('form-header');
+
+        let currentQuestionIndex = -1;
+        const answers = {};
+        
+        function changeBackground(index) {
+            document.body.style.background = backgroundThemes[index % backgroundThemes.length];
+        }
+
+        function startForm() {
+            currentQuestionIndex = 0;
+            progressContainer.classList.remove('hidden');
+            qrCodeInfo.classList.remove('hidden');
+            formHeader.style.opacity = '1';
+            showQuestion(currentQuestionIndex);
+        }
+
+        function showQuestion(index) {
+            const oldQuestion = formContainer.querySelector('.question-card');
+            if (oldQuestion) {
+                oldQuestion.classList.add('question-hidden');
+                oldQuestion.addEventListener('transitionend', () => oldQuestion.remove(), { once: true });
+            }
+            
+            // Background index is currentQuestionIndex + 1 because intro is 0
+            changeBackground(index + 1);
+            updateProgressBar();
+
+            if (index >= questions.length) {
+                showThankYouMessage();
+                submitToGoogleForm();
+                return;
+            }
+
+            const question = questions[index];
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card w-full question-hidden';
+            questionCard.innerHTML = createQuestionHTML(question);
+            
+            formContainer.appendChild(questionCard);
+
+            setTimeout(() => {
+                questionCard.classList.remove('question-hidden');
+            }, 50);
+
+            addEventListeners(question);
+        }
+
+        function createQuestionHTML(question) {
+            let optionsHTML = '';
+            switch (question.type) {
+                case 'emoji':
+                    optionsHTML = `<div class="flex justify-center gap-2 sm:gap-4 mt-6">` +
+                        question.options.map((opt, i) =>
+                            `<button data-value="${question.answers[i]}" class="option-button text-4xl p-3 rounded-full hover:bg-white">${opt}</button>`
+                        ).join('') + `</div>`;
+                    break;
+                case 'rating':
+                    const isNPS = question.options.length > 6;
+                    const gridClass = isNPS ? 'grid-cols-6 sm:grid-cols-11' : 'grid-cols-5';
+                    optionsHTML = `<div class="grid ${gridClass} gap-2 mt-6">` +
+                        question.options.map(opt =>
+                            `<button data-value="${opt}" class="option-button text-center rounded-lg p-3 font-semibold">${opt}</button>`
+                        ).join('') + `</div>`;
+                     if (isNPS) {
+                        optionsHTML += `<div class="flex justify-between text-xs text-white font-semibold mt-2 px-1"><span>Not Likely</span><span>Very Likely</span></div>`;
+                    }
+                    break;
+                case 'textarea':
+                    optionsHTML = `<div class="mt-6">
+                        <textarea id="textarea-input" class="w-full border-2 bg-white/50 border-white/60 rounded-lg p-3 focus:ring-2 focus:ring-white text-gray-800 placeholder-gray-600" rows="4" placeholder="Your feedback is valuable..."></textarea>
+                        <button id="submit-textarea" class="mt-4 w-full bg-white text-indigo-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white shadow-lg">Submit</button>
+                    </div>`;
+                    break;
+                case 'choice':
+                default:
+                    optionsHTML = `<div class="grid grid-cols-1 gap-3 mt-6">` +
+                        question.options.map(opt =>
+                            `<button data-value="${opt}" class="option-button w-full text-left rounded-lg p-4 font-medium">${opt}</button>`
+                        ).join('') + `</div>`;
+            }
+            return `<div class="text-center">
+                        <h2 class="text-xl sm:text-2xl font-semibold text-white">${question.text}</h2>
+                        ${optionsHTML}
+                    </div>`;
+        }
+        
+        function addEventListeners(question) {
+            if (question.type === 'textarea') {
+                document.getElementById('submit-textarea').addEventListener('click', () => {
+                    const value = document.getElementById('textarea-input').value;
+                    handleAnswer(question, value);
+                });
+            } else {
+                formContainer.querySelectorAll('.option-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const value = e.currentTarget.dataset.value;
+                        handleAnswer(question, value, e.currentTarget);
+                    });
+                });
+            }
+        }
+
+        function handleAnswer(question, value, selectedElement = null) {
+            if(selectedElement) {
+                formContainer.querySelectorAll('.option-button').forEach(btn => btn.disabled = true);
+                selectedElement.classList.add('selected');
+            }
+            
+            answers[question.id] = value;
+            
+            setTimeout(() => {
+                currentQuestionIndex++;
+                showQuestion(currentQuestionIndex);
+            }, 400); 
+        }
+
+        function updateProgressBar() {
+            const progress = (currentQuestionIndex / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function showThankYouMessage() {
+            changeBackground(backgroundThemes.length - 1);
+            progressBar.style.width = '100%';
+            formHeader.style.opacity = '0';
+            formContainer.innerHTML = `
+                <div class="text-center question-card">
+                    <div class="w-20 h-20 bg-white/30 rounded-full mx-auto flex items-center justify-center">
+                        <svg class="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h2 class="mt-6 text-2xl sm:text-3xl font-bold text-white">Thank You!</h2>
+                    <p class="mt-2 text-white/80">Your feedback has been submitted successfully.</p>
+                </div>
+            `;
+             setTimeout(() => {
+                formContainer.querySelector('.question-card').classList.remove('question-hidden');
+            }, 50);
+        }
+
+        function submitToGoogleForm() {
+            if (GOOGLE_FORM_ACTION_URL.includes('XXXX')) {
+                console.warn('Google Form URL not set. Skipping submission.');
+                return;
+            }
+            
+            const formData = new FormData();
+            for (const key in answers) {
+                formData.append(key, answers[key]);
+            }
+
+            fetch(GOOGLE_FORM_ACTION_URL, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors'
+            }).then(() => console.log('Form submitted.')).catch(error => console.error('Error:', error));
+        }
+        
+        function showIntro() {
+            changeBackground(0); // Set initial background
+            formContainer.innerHTML = `
+                 <div class="text-center question-card">
+                    <h1 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight">Your Opinion Matters!</h1>
+                    <p class="text-white/80 mt-4 text-lg max-w-md mx-auto">Take a moment to tell us about your visit to our mall today. Your feedback helps us improve.</p>
+                    <button id="start-button" class="mt-8 bg-white text-indigo-700 font-bold py-4 px-8 rounded-full shadow-2xl text-lg">Let's Get Started</button>
+                </div>
+            `;
+             setTimeout(() => {
+                formContainer.querySelector('.question-card').classList.remove('question-hidden');
+            }, 50);
+
+            document.getElementById('start-button').addEventListener('click', startForm);
+        }
+
+        showIntro();
+    });
+    </script>
+</body>
+</html>
+
