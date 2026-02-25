@@ -316,17 +316,17 @@
                 let optionsHTML = '';
                 switch (question.type) {
                     case 'emoji':
-                        optionsHTML = `<div class="flex justify-center gap-2 sm:gap-4 mt-6">` +
+                        optionsHTML = `<div class="flex justify-center gap-1.5 sm:gap-4 mt-6">` +
                             question.options.map((opt, i) =>
-                                `<button data-value="${question.answers[i]}" class="option-button text-4xl p-3 rounded-full hover:bg-white">${opt}</button>`
+                                `<button data-value="${question.answers[i]}" class="option-button text-3xl sm:text-4xl p-2 sm:p-3 rounded-full hover:bg-white">${opt}</button>`
                             ).join('') + `</div>`;
                         break;
                     case 'rating':
                         const isNPS = question.options.length > 6;
                         const gridClass = isNPS ? 'grid-cols-6 sm:grid-cols-11' : 'grid-cols-5';
-                        optionsHTML = `<div class="grid ${gridClass} gap-2 mt-6">` +
+                        optionsHTML = `<div class="grid ${gridClass} gap-1.5 sm:gap-2 mt-6">` +
                             question.options.map(opt =>
-                                `<button data-value="${opt}" class="option-button text-center rounded-lg p-3 font-semibold">${opt}</button>`
+                                `<button data-value="${opt}" class="option-button text-center rounded-lg p-2 sm:p-3 text-sm sm:text-base font-semibold">${opt}</button>`
                             ).join('') + `</div>`;
                         if (isNPS) {
                             optionsHTML += `<div class="flex justify-between text-xs text-white font-semibold mt-2 px-1"><span>Not Likely</span><span>Very Likely</span></div>`;
